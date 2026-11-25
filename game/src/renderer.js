@@ -577,7 +577,7 @@ function drawBottomBar(ctx, state, rects) {
   ctx.fillStyle = '#ffe9b0';
   ctx.font = 'bold 14px Georgia, serif';
   ctx.textAlign = 'left';
-  ctx.fillText('TOPPING — klik untuk panggang / potong (2 slot):', 16, TOPPING_BAR_Y - 8);
+  ctx.fillText('TOPPING — klik untuk panggang / potong (2 slot):', 16, TOPPING_BAR_Y - 14);
   rects.toppingButtons.forEach((rect) => {
     const t = toppingById(rect.id);
     const busy = state.grill.some((s) => s.topping === rect.id && s.status !== 'empty');
@@ -688,7 +688,7 @@ function drawTitle(ctx, state) {
   ctx.fillText('Klik di mana saja untuk mulai memasak', 640, 420);
   ctx.fillStyle = '#e8c98a';
   ctx.font = '14px Georgia, serif';
-  ctx.fillText('Mouse: klik stasiun  •  1/2: pilih mangkuk  •  M: bisu  •  P: jeda', 640, 460);
+  ctx.fillText('Mouse: klik stasiun  •  1/2: pilih mangkuk  •  M: bisu  •  P: jeda', 640, 496);
   ctx.textAlign = 'left';
 }
 
