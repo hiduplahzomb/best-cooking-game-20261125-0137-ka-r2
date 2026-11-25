@@ -11,7 +11,7 @@ import {
 } from './config.js';
 import { BROTHS, TOPPINGS, brothById, toppingById } from './recipes.js';
 import { BASKET_COOKING, BASKET_READY, BASKET_BURNT, GRILL_COOKING, GRILL_DONE, basketProgress, grillProgress } from './stations.js';
-import { drawParticles } from './particles.js';
+import { drawSteam, drawFloats } from './particles.js';
 
 export const WOOD_DARK = '#6b4423';
 export const WOOD_LIGHT = '#a4713b';
@@ -58,16 +58,23 @@ export function drawToppingIcon(ctx, x, y, r, id) {
   ctx.save();
   ctx.translate(x, y);
   if (id === 'chashu') {
-    ctx.fillStyle = '#e8a0a0';
+    // Irisan daging chashu karamel: cokelat panggang bertepi gelap, bukan spiral.
+    ctx.fillStyle = '#8a4b1f';
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#c96a6a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#c98a4b';
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.82, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e8b878';
+    ctx.beginPath(); ctx.ellipse(0, -r * 0.1, r * 0.5, r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#5a2c0e'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.82, 0, Math.PI * 2); ctx.stroke();
   } else if (id === 'egg') {
     ctx.fillStyle = '#fff8e0';
     ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.72, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f5a623';
     ctx.beginPath(); ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2); ctx.fill();
+    // Kilau kuning telur.
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.beginPath(); ctx.ellipse(-r * 0.16, -r * 0.18, r * 0.16, r * 0.1, -0.5, 0, Math.PI * 2); ctx.fill();
   } else if (id === 'nori') {
     ctx.fillStyle = '#2e4d2e';
     ctx.fillRect(-r * 0.8, -r * 0.9, r * 1.6, r * 1.8);
@@ -90,6 +97,10 @@ export function drawToppingIcon(ctx, x, y, r, id) {
   } else if (id === 'shiitake') {
     ctx.fillStyle = '#8a5a33';
     ctx.beginPath(); ctx.arc(0, -r * 0.2, r * 0.85, Math.PI, 0); ctx.fill();
+    // Potongan silang putih khas shiitake.
+    ctx.strokeStyle = '#f7efdc'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-r * 0.45, -r * 0.75); ctx.lineTo(r * 0.45, -r * 0.25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(r * 0.45, -r * 0.75); ctx.lineTo(-r * 0.45, -r * 0.25); ctx.stroke();
     ctx.fillStyle = '#f2e3c2';
     ctx.fillRect(-r * 0.25, -r * 0.2, r * 0.5, r * 0.7);
   }
@@ -127,8 +138,9 @@ export function drawFace(ctx, x, y, r, face) {
 
 export function drawRamenBowl(ctx, x, y, w, bowl) {
   const cx = x + w / 2;
-  const bowlTop = y + 34;
-  const bowlH = 62;
+  // Sudut tiga perempat: mulut mangkuk dalam (elips tinggi) supaya isi terbaca.
+  const bowlTop = y + 30;
+  const bowlH = 72;
   // Mangkuk luar bergaris.
   ctx.fillStyle = '#b8322a';
   ctx.beginPath();
@@ -139,18 +151,26 @@ export function drawRamenBowl(ctx, x, y, w, bowl) {
   ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#d94f3d';
   ctx.fillRect(x + 6, bowlTop, w - 12, 8);
+  // Alas mangkuk.
+  ctx.fillStyle = '#8a2318';
+  ctx.fillRect(x + 34, bowlTop + bowlH, w - 68, 6);
   ctx.fillStyle = '#f7e8c8';
-  ctx.beginPath(); ctx.ellipse(cx, bowlTop, w / 2 - 6, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx, bowlTop, w / 2 - 6, 22, 0, 0, Math.PI * 2); ctx.fill();
   if (bowl.broth) {
     const b = brothById(bowl.broth);
     ctx.fillStyle = b.color;
-    ctx.beginPath(); ctx.ellipse(cx, bowlTop, w / 2 - 14, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx, bowlTop, w / 2 - 14, 18, 0, 0, Math.PI * 2); ctx.fill();
+    // Kilau kaldu: bedakan ketiga warna kaldu dengan jelas.
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.ellipse(cx - 18, bowlTop - 6, 26, 6, -0.25, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = b.light;
+    ctx.beginPath(); ctx.ellipse(cx + 24, bowlTop + 6, 16, 4, 0.2, 0, Math.PI * 2); ctx.fill();
   }
   if (bowl.noodles) {
     ctx.strokeStyle = '#f2d38a';
     ctx.lineWidth = 3;
     for (let i = 0; i < 4; i += 1) {
-      const yy = bowlTop - 4 + i * 3;
+      const yy = bowlTop - 6 + i * 4;
       ctx.beginPath();
       for (let px = -w / 2 + 20; px <= w / 2 - 20; px += 6) {
         const py = yy + Math.sin(px * 0.35 + i) * 2.5;
@@ -160,20 +180,29 @@ export function drawRamenBowl(ctx, x, y, w, bowl) {
     }
   }
   if (bowl.toppings.length > 0) {
-    const spots = [[-0.28, -0.12], [0.26, -0.14], [0, 0.02], [-0.05, -0.2], [0.3, 0.05], [-0.3, 0.06]];
+    const spots = [[-0.28, -0.1], [0.26, -0.12], [0, 0.08], [-0.05, -0.22], [0.3, 0.08], [-0.3, 0.1]];
     bowl.toppings.forEach((t, i) => {
       const [dx, dy] = spots[i % spots.length];
-      drawToppingIcon(ctx, cx + dx * w, bowlTop + dy * 40, 13, t);
+      if (t === 'nori') {
+        // Nori miring menempel di sisi mangkuk.
+        ctx.save();
+        ctx.translate(cx + dx * w, bowlTop + dy * 40 - 6);
+        ctx.rotate(-0.45);
+        drawToppingIcon(ctx, 0, 0, 17, t);
+        ctx.restore();
+      } else {
+        drawToppingIcon(ctx, cx + dx * w, bowlTop + dy * 40, 18, t);
+      }
     });
   }
   // Uap kecil di atas mangkuk berisi.
   if (bowl.broth) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.lineWidth = 2;
     for (let i = -1; i <= 1; i += 1) {
       ctx.beginPath();
-      ctx.moveTo(cx + i * 26, bowlTop - 12);
-      ctx.quadraticCurveTo(cx + i * 26 + 6, bowlTop - 22, cx + i * 26, bowlTop - 30);
+      ctx.moveTo(cx + i * 26, bowlTop - 22);
+      ctx.quadraticCurveTo(cx + i * 26 + 6, bowlTop - 32, cx + i * 26, bowlTop - 40);
       ctx.stroke();
     }
   }
@@ -214,28 +243,35 @@ function drawHeart(ctx, x, y, size, filled) {
 
 export function drawGame(ctx, state) {
   const rects = layoutRects();
-  // Dinding kedai.
-  ctx.fillStyle = '#3d2a18';
+  // Dinding kedai: plester krem terang — jelas beda dari meja kayu gelap.
+  ctx.fillStyle = '#ecd9a8';
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  ctx.fillStyle = '#7a4a26';
-  ctx.fillRect(0, HUD_HEIGHT, CANVAS_WIDTH, 8);
-  // Meja kayu.
-  ctx.fillStyle = WOOD_DARK;
+  // Meja kayu gelap.
+  ctx.fillStyle = '#4a2c14';
   ctx.fillRect(0, 196, CANVAS_WIDTH, 364);
   ctx.fillStyle = COUNTER_TOP;
   ctx.fillRect(0, 196, CANVAS_WIDTH, 14);
-  ctx.fillStyle = WOOD_LIGHT;
+  ctx.fillStyle = '#2e1a08';
   for (let x = 0; x < CANVAS_WIDTH; x += 160) {
     ctx.fillRect(x, 210, 3, 350);
   }
+  // Uap DI BELAKANG semua label dan stasiun, transparansi rendah.
+  drawSteam(ctx, state.particles);
   drawOrderBoard(ctx, state, rects);
   drawKitchen(ctx, state, rects);
   drawBottomBar(ctx, state, rects);
-  drawParticles(ctx, state.particles);
+  drawFloats(ctx, state.particles);
   drawHud(ctx, state);
   if (state.screen === 'title') drawTitle(ctx, state);
   if (state.screen === 'win') drawEndPanel(ctx, 'MENANG! Kedai Ramen Rush berjaya!', `Skor akhir ${state.score} — target ${1000} tercapai. Tekan R untuk main lagi.`);
   if (state.screen === 'over') drawEndPanel(ctx, 'Kedai tutup... pelanggan kecewa.', `Skor akhir ${state.score}. Tekan R untuk mencoba lagi.`);
+}
+
+function drawStationShadow(ctx, cx, y, w) {
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(cx, y, w / 2, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawHud(ctx, state) {
@@ -244,10 +280,15 @@ function drawHud(ctx, state) {
   ctx.fillStyle = '#ffd94a';
   ctx.font = 'bold 24px Georgia, serif';
   ctx.textAlign = 'left';
-  ctx.fillText('RAMEN RUSH', 16, 28);
-  ctx.font = '13px Georgia, serif';
-  ctx.fillStyle = '#e8c98a';
-  ctx.fillText('Kedai Mie Beruap', 16, 48);
+  ctx.fillText('RAMEN RUSH', 16, 30);
+  // Lampion merah kecil — identitas kedai di HUD.
+  ctx.fillStyle = '#d94f3d';
+  ctx.beginPath(); ctx.ellipse(208, 24, 11, 14, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffd94a';
+  ctx.fillRect(202, 8, 12, 4);
+  ctx.fillRect(202, 36, 12, 4);
+  ctx.fillStyle = '#fff6e6';
+  ctx.beginPath(); ctx.arc(208, 24, 4, 0, Math.PI * 2); ctx.fill();
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fff6e6';
   ctx.font = 'bold 22px Georgia, serif';
@@ -267,17 +308,20 @@ function drawHud(ctx, state) {
 }
 
 function drawOrderBoard(ctx, state, rects) {
-  ctx.fillStyle = '#fff6e6';
+  ctx.fillStyle = INK;
   ctx.font = 'bold 14px Georgia, serif';
   ctx.textAlign = 'left';
   ctx.fillText('PAPAN PESANAN', 16, 79);
   ctx.font = '12px Georgia, serif';
-  ctx.fillStyle = '#e8c98a';
+  ctx.fillStyle = '#6b4a2a';
   ctx.fillText('Sajikan mangkuk yang sama persis dengan pesanan', 170, 79);
   state.orders.forEach((order, i) => {
     const card = rects.orderCards[i];
     const frac = order.patience / order.patienceMax;
     ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    roundRect(ctx, card.x + 3, card.y + 4, card.w, card.h, 10);
+    ctx.fill();
     roundRect(ctx, card.x, card.y, card.w, card.h, 10);
     ctx.fillStyle = frac < 0.3 ? '#ffe0d0' : '#fff6e6';
     ctx.fill();
@@ -321,15 +365,26 @@ function drawOrderBoard(ctx, state, rects) {
 }
 
 function drawKitchen(ctx, state, rects) {
-  // Label stasiun.
-  ctx.fillStyle = '#fff6e6';
+  // Label stasiun (bayangan gelap di bawah teks supaya tetap terbaca di balik uap).
   ctx.font = 'bold 14px Georgia, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('PANCI KALDU', POT_X + POT_WIDTH / 2, POT_Y - 12);
-  ctx.fillText('PEREBUS MI — 2 KERANJANG', BASKET_X + BASKET_WIDTH + BASKET_GAP / 2, BASKET_Y - 12);
-  ctx.fillText('PANGGANG / POTONG', GRILL_X + GRILL_WIDTH / 2, GRILL_Y - 12);
-  ctx.fillText('MANGKUK SAJI — 2 BUAH', BOWL_X + BOWL_WIDTH + BOWL_GAP / 2 + 30, BOWL_Y - 12);
+  const stationLabels = [
+    ['PANCI KALDU', POT_X + POT_WIDTH / 2, POT_Y - 12],
+    ['PEREBUS MI — 2 KERANJANG', BASKET_X + BASKET_WIDTH + BASKET_GAP / 2, BASKET_Y - 12],
+    ['PANGGANG / POTONG', GRILL_X + GRILL_WIDTH / 2, GRILL_Y - 12],
+    ['MANGKUK SAJI — 2 BUAH', BOWL_X + BOWL_WIDTH + BOWL_GAP / 2 + 30, BOWL_Y - 12],
+  ];
+  for (const [label, x, y] of stationLabels) {
+    ctx.fillStyle = 'rgba(20,10,2,0.85)';
+    ctx.fillText(label, x + 1.5, y + 1.5);
+    ctx.fillStyle = '#fff6e6';
+    ctx.fillText(label, x, y);
+  }
   ctx.textAlign = 'left';
+  drawStationShadow(ctx, POT_X + POT_WIDTH / 2, POT_Y + POT_HEIGHT + 6, POT_WIDTH);
+  drawStationShadow(ctx, BASKET_X + BASKET_WIDTH + BASKET_GAP / 2, BASKET_Y + BASKET_HEIGHT + 6, BASKET_WIDTH * 2 + BASKET_GAP);
+  drawStationShadow(ctx, GRILL_X + GRILL_WIDTH / 2, GRILL_Y + GRILL_HEIGHT + 6, GRILL_WIDTH);
+  drawStationShadow(ctx, BOWL_X + BOWL_WIDTH + BOWL_GAP / 2, BOWL_Y + BOWL_HEIGHT + 6, BOWL_WIDTH * 2 + BOWL_GAP);
   drawPot(ctx, state);
   state.baskets.forEach((b, i) => drawBasket(ctx, b, rects.baskets[i], i));
   drawGrill(ctx, state, rects);
@@ -391,19 +446,25 @@ function drawPot(ctx, state) {
 }
 
 function drawBasket(ctx, basket, rect, index) {
-  ctx.fillStyle = '#2a4a6b';
+  // Perebus baja abu-abu dengan gagang, bukan biru polos.
+  ctx.fillStyle = '#9aa0a6';
   roundRect(ctx, rect.x, rect.y + 40, rect.w, rect.h - 40, 10);
   ctx.fill();
-  ctx.fillStyle = '#7ab8e8';
+  ctx.fillStyle = '#6e7378';
+  ctx.fillRect(rect.x, rect.y + 40, rect.w, 8);
+  ctx.fillStyle = '#c3c8cd';
+  ctx.fillRect(rect.x + 6, rect.y + 48, 4, rect.h - 56);
+  ctx.fillStyle = '#d7dee3';
   ctx.beginPath();
   ctx.ellipse(rect.x + rect.w / 2, rect.y + 44, rect.w / 2 - 8, 10, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = '#8a6a42';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 10, rect.y + 10);
-  ctx.lineTo(rect.x + rect.w - 10, rect.y + 10);
-  ctx.stroke();
+  // Gagang baja melintang di atas keranjang.
+  ctx.fillStyle = '#5a5e63';
+  ctx.fillRect(rect.x + 6, rect.y + 14, 8, 28);
+  ctx.fillRect(rect.x + rect.w - 14, rect.y + 14, 8, 28);
+  ctx.fillStyle = '#3a3d40';
+  roundRect(ctx, rect.x + 6, rect.y + 8, rect.w - 12, 10, 5);
+  ctx.fill();
   ctx.fillStyle = '#fff6e6';
   ctx.font = 'bold 12px Georgia, serif';
   ctx.textAlign = 'center';
@@ -451,7 +512,7 @@ function drawBasket(ctx, basket, rect, index) {
     ctx.fill();
     ctx.fillStyle = '#ff6b4a';
     ctx.font = 'bold 12px Georgia, serif';
-    ctx.fillText('GOSONG! Klik buang', rect.x + rect.w / 2, rect.y + rect.h - 26);
+    ctx.fillText('GOSONG! Buang', rect.x + rect.w / 2, rect.y + rect.h - 26);
   } else {
     ctx.fillStyle = '#c9b18a';
     ctx.font = '11px Georgia, serif';
@@ -502,9 +563,18 @@ function drawGrill(ctx, state, rects) {
 }
 
 function drawBottomBar(ctx, state, rects) {
-  ctx.fillStyle = '#241608';
+  // Baki bahan stainless (bukan tombol form krem polos).
+  const trayGrad = ctx.createLinearGradient(0, 566, 0, 720);
+  trayGrad.addColorStop(0, '#c9ccd0');
+  trayGrad.addColorStop(0.5, '#a9adb2');
+  trayGrad.addColorStop(1, '#878c91');
+  ctx.fillStyle = trayGrad;
   ctx.fillRect(0, 566, CANVAS_WIDTH, 154);
-  ctx.fillStyle = '#ffd94a';
+  ctx.fillStyle = '#6e7378';
+  ctx.fillRect(0, 566, CANVAS_WIDTH, 5);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  for (let y = 580; y < 716; y += 18) ctx.fillRect(0, y, CANVAS_WIDTH, 1);
+  ctx.fillStyle = '#ffe9b0';
   ctx.font = 'bold 14px Georgia, serif';
   ctx.textAlign = 'left';
   ctx.fillText('TOPPING — klik untuk panggang / potong (2 slot):', 16, TOPPING_BAR_Y - 8);
@@ -528,17 +598,72 @@ function drawBottomBar(ctx, state, rects) {
     ctx.fillText(`siap ${t.prep} dtk`, rect.x + rect.w / 2, rect.y + 57);
     ctx.restore();
   });
-  ctx.fillStyle = '#ffd94a';
+  // Ruang kanan bawah: persediaan + identitas kedai (noren + lampion).
+  drawTrayDecor(ctx);
+  ctx.fillStyle = '#3a1a08';
   ctx.font = 'bold 14px Georgia, serif';
   ctx.fillText('KALDU — klik untuk tuang ke mangkuk aktif:', 16, BROTH_BAR_Y - 8);
   rects.brothButtons.forEach((rect) => {
+    // Wadah kaldu di atas baki: panci stainless kecil berisi kaldu berwarna.
     const b = brothById(rect.id);
-    drawButton(ctx, rect, b.name, b.desc, true, state.selectedBroth === rect.id);
+    const active = state.selectedBroth === rect.id;
+    ctx.save();
+    roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 9);
+    ctx.fillStyle = active ? '#ffe9b0' : '#e8ebee';
+    ctx.fill();
+    ctx.lineWidth = active ? 3 : 2;
+    ctx.strokeStyle = active ? '#8a4b1f' : '#5a5e63';
+    ctx.stroke();
+    ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.ellipse(rect.x + rect.w / 2, rect.y + 13, 58, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.ellipse(rect.x + rect.w / 2 - 18, rect.y + 11, 20, 3, -0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = INK;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 12px Georgia, serif';
+    ctx.fillText(b.name, rect.x + rect.w / 2, rect.y + 34);
+    ctx.restore();
   });
-  ctx.fillStyle = '#e8c98a';
+  ctx.fillStyle = '#3a1a08';
   ctx.font = '12px Georgia, serif';
   ctx.textAlign = 'right';
   ctx.fillText('Klik mangkuk untuk memilih  •  1 / 2 pilih mangkuk  •  M bisu  •  P jeda  •  R ulang', 1264, BROTH_BAR_Y + 30);
+  ctx.textAlign = 'left';
+}
+
+// Dekorasi baki: mangkuk cadangan + sumpit, tirai noren, dan lampion merah.
+function drawTrayDecor(ctx) {
+  // Mangkuk cadangan bertumpuk.
+  ctx.fillStyle = '#b8322a';
+  ctx.beginPath(); ctx.ellipse(890, 628, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#d94f3d';
+  ctx.beginPath(); ctx.ellipse(890, 620, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f7e8c8';
+  ctx.beginPath(); ctx.ellipse(890, 620, 34, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#b8322a';
+  ctx.beginPath(); ctx.ellipse(890, 606, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f7e8c8';
+  ctx.beginPath(); ctx.ellipse(890, 606, 34, 8, 0, 0, Math.PI * 2); ctx.fill();
+  // Sumpit.
+  ctx.strokeStyle = '#6b3a1a'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(950, 592); ctx.lineTo(990, 632); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(962, 588); ctx.lineTo(1002, 628); ctx.stroke();
+  // Tirai noren biru gelap dengan tulisan kedai.
+  ctx.fillStyle = '#2a3a5e';
+  for (let i = 0; i < 3; i += 1) ctx.fillRect(1040 + i * 40, 574, 36, 62);
+  ctx.fillStyle = '#fff6e6';
+  ctx.font = 'bold 11px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('RAMEN', 1098, 596);
+  ctx.fillText('RUSH', 1098, 612);
+  // Lampion merah.
+  ctx.fillStyle = '#d94f3d';
+  ctx.beginPath(); ctx.ellipse(1224, 606, 20, 26, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffd94a';
+  ctx.fillRect(1216, 576, 16, 5);
+  ctx.fillRect(1216, 628, 16, 5);
+  ctx.fillStyle = '#fff6e6';
+  ctx.beginPath(); ctx.arc(1224, 606, 7, 0, Math.PI * 2); ctx.fill();
   ctx.textAlign = 'left';
 }
 
@@ -549,9 +674,11 @@ function drawTitle(ctx, state) {
   ctx.textAlign = 'center';
   ctx.font = 'bold 64px Georgia, serif';
   ctx.fillText('RAMEN RUSH', 640, 220);
+  // Tirai noren di layar judul.
+  ctx.fillStyle = '#2a3a5e';
+  for (let i = 0; i < 3; i += 1) ctx.fillRect(520 + i * 84, 96, 76, 56);
   ctx.fillStyle = '#ffd94a';
-  ctx.font = 'bold 28px Georgia, serif';
-  ctx.fillText('Kedai Mie Beruap', 640, 264);
+  ctx.beginPath(); ctx.arc(640, 124, 16, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#fff6e6';
   ctx.font = '18px Georgia, serif';
   ctx.fillText('Rebus mi di dua keranjang, panggang topping, rakit mangkuk, sajikan sebelum pelanggan pergi.', 640, 320);

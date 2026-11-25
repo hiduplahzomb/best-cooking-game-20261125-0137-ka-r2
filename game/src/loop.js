@@ -58,11 +58,11 @@ export function spawnOrder(state) {
 
 export function updateGame(state, dt) {
   if (state.screen !== SCREEN_PLAY || state.paused || state.demo) {
-    updateParticles(state.particles, dt);
+    updateParticles(state.particles, dt, state.baskets);
     return;
   }
   state.time += dt;
-  updateParticles(state.particles, dt);
+  updateParticles(state.particles, dt, state.baskets);
   for (const basket of state.baskets) updateBasket(basket, dt);
   for (const slot of state.grill) updateGrillSlot(slot, dt);
   // Kesabaran pelanggan menipis; pelanggan yang habis sabar pergi dan nyawa berkurang.
@@ -94,7 +94,7 @@ export function updateGame(state, dt) {
 export function loseLife(state, message) {
   state.lives -= 1;
   state.combo = 0;
-  addFloatingScore(state.particles, 640, 240, message, '#ff6b4a');
+  addFloatingScore(state.particles, 640, 180, message, '#ff6b4a');
   playErrorSound();
   if (state.lives <= 0) {
     state.screen = SCREEN_OVER;
@@ -111,7 +111,7 @@ export function serveBowl(state, bowlIndex) {
     state.score = Math.max(0, state.score - WRONG_SERVE_PENALTY);
     state.combo = 0;
     emptyBowl(bowl);
-    addFloatingScore(state.particles, 640, 300, 'SALAH PESANAN! -' + WRONG_SERVE_PENALTY, '#ff6b4a');
+    addFloatingScore(state.particles, 640, 180, 'SALAH PESANAN! -' + WRONG_SERVE_PENALTY, '#ff6b4a');
     playErrorSound();
     return { ok: false, reason: 'Tidak ada pesanan yang cocok — kombo putus.' };
   }
@@ -125,9 +125,9 @@ export function serveBowl(state, bowlIndex) {
   const rect = { x: 908 + bowlIndex * 172, y: 330 };
   addFloatingScore(state.particles, rect.x + 75, rect.y, '+' + points, '#ffd94a');
   if (state.combo >= 2) {
-    addFloatingScore(state.particles, 640, 260, 'KOMBO x' + state.combo + '!', '#ffd94a');
+    addFloatingScore(state.particles, 640, 180, 'KOMBO x' + state.combo + '!', '#ffd94a');
   }
-  addFloatingScore(state.particles, 640, 300, order.name + ' senang! +' + points, '#7ec850');
+  addFloatingScore(state.particles, 640, 180, order.name + ' senang! +' + points, '#7ec850');
   playServeSound();
   if (state.score >= WIN_SCORE) state.screen = SCREEN_WIN;
   return { ok: true, points, combo: state.combo };
